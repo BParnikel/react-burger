@@ -104,7 +104,7 @@ class ContactData extends Component {
             }
         },
         formIsValid: false
-    }
+    };
 
     orderHandler = (event) => {
         event.preventDefault();
@@ -117,7 +117,7 @@ class ContactData extends Component {
             ingredients: this.props.ingredients,
             price: this.props.price,
             orderData: formData
-        }
+        };
         axios.post('/orders.json', order)
             .then(response => {
                 this.setState({ loading: false });
@@ -126,12 +126,12 @@ class ContactData extends Component {
             .catch(error => {
                 this.setState({ loading: false });
             });
-    }
+    };
 
     inputChangedHandler = (event, inputId) => {
         const updatedForm = {
             ...this.state.orderForm
-        }
+        };
         const updateFormElement = {
             ...updatedForm[inputId]
         };
@@ -146,7 +146,7 @@ class ContactData extends Component {
         }
 
         this.setState({ orderForm: updatedForm, formIsValid: formIsValid });
-    }
+    };
 
     checkValidity(value, rules) {
         let isValid = true;
