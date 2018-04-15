@@ -1,11 +1,16 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
 import CheckoutSummary from '../../components/Order/CheckoutSummary/CheckoutSummary'
-import {Route} from 'react-router-dom';
+import { Route, Redirect } from 'react-router-dom';
 import ContactData from './ContactData/ContactData';
-import {connect} from "react-redux";
+import { connect } from "react-redux";
+import * as actions from "../../store/actions";
 
 class Checkout extends Component {
+  componentWillMount() {
+    this.props.onInitPurchase();
+  }
+
   checkoutCancelledHandler = () => {
     this.props.history.goBack();
   };
@@ -15,32 +20,37 @@ class Checkout extends Component {
   };
 
   render() {
-    return (
-      <div>
-        <CheckoutSummary
-          ingredients={this.props.ingredients}
-          onCheckoutCancelled={this.checkoutCancelledHandler}
-          onCheckoutContinued={this.checkoutContinuedHandler}/>
-        <Route
-          path={this.props.match.url + '/contact-data'}
-          render={(props) => {
-            return (
-              <ContactData
-                {...props}
-                ingredients={this.props.ingredients}
-                price={this.props.totalPrice}/>
-            )
-          }}/>
-      </div>
-    )
+    let summary = <Redirect to="/" />
+    if (this.props.ingredients) {
+    const purchaseRedirect = this.props.purchased ? <Redirect to="/" /> : null;
+    summary = (
+        <div>
+          {purchaseRedirect}
+          <CheckoutSummary
+            ingredients={this.props.ingredients}
+            onCheckoutCancelled={this.checkoutCancelledHandler}
+            onCheckoutContinued={this.checkoutContinuedHandler} />
+          <Route
+            path={this.props.match.url + '/contact-data'}
+            component={ContactData} />
+        </div>
+      )
+    }
+    return summary;
   }
 }
 
 const mapStateToProps = state => {
   return {
-    ingredients: state.ingredients,
-    totalPrice: state.totalPrice
+    ingredients: state.burgerBuilder.ingredients,
+    purchased: state.order.purchased
   }
 };
 
-export default connect(mapStateToProps)(Checkout);
+const mapDispatchToProps = dispatch => {
+  return {
+    onInitPurchase: () => dispatch(actions.purchaseInit())
+  }
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Checkout);
