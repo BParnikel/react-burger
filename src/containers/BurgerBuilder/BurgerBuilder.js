@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 
 import Aux from '../../hoc/_Aux/_Aux';
 import Burger from '../../components/Burger/Burger';
@@ -8,7 +8,7 @@ import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 import axios from '../../axios-orders';
-import { connect } from 'react-redux'
+import {connect} from 'react-redux'
 import * as actions from '../../store/actions';
 
 class BurgerBuilder extends Component {
@@ -21,11 +21,16 @@ class BurgerBuilder extends Component {
   }
 
   purchaseHandler = () => {
-    this.setState({ purchasing: true });
+    if (this.props.isAuthenticated) {
+      this.setState({purchasing: true});
+    } else {
+      this.props.onSetAuthRedirectPath('/checkout');
+      this.props.history.push('/auth');
+    }
   };
 
   purchaseCancelHandler = () => {
-    this.setState({ purchasing: false });
+    this.setState({purchasing: false});
   };
 
   purchaseContinueHandler = () => {
@@ -41,7 +46,7 @@ class BurgerBuilder extends Component {
       disabledInfo[key] = disabledInfo[key] <= 0
     }
     let orderSummary = null;
-    let burger = this.props.error ? <p>Ingredients can't be loaded!</p> : <Spinner />;
+    let burger = this.props.error ? <p>Ingredients can't be loaded!</p> : <Spinner/>;
 
     if (this.props.ingredients) {
       const sum = Object.keys(this.props.ingredients)
@@ -51,21 +56,22 @@ class BurgerBuilder extends Component {
 
       burger = (
         <Aux>
-          <Burger ingredients={this.props.ingredients} />
+          <Burger ingredients={this.props.ingredients}/>
           <BuildControls
             ingredientAdded={this.props.onIngredientAdded}
             ingredientRemoved={this.props.onIngredientRemoved}
             disabled={disabledInfo}
             purchasable={purchasable}
+            isAuth={this.props.isAuthenticated}
             ordered={this.purchaseHandler}
-            price={this.props.totalPrice} />
+            price={this.props.totalPrice}/>
         </Aux>
       );
       orderSummary = <OrderSummary
         ingredients={this.props.ingredients}
         price={this.props.totalPrice}
         purchaseCancelled={this.purchaseCancelHandler}
-        purchaseContinued={this.purchaseContinueHandler} />;
+        purchaseContinued={this.purchaseContinueHandler}/>;
     }
     return (
       <Aux>
@@ -82,7 +88,8 @@ const mapStateToProps = state => {
   return {
     ingredients: state.burgerBuilder.ingredients,
     totalPrice: state.burgerBuilder.totalPrice,
-    error: state.burgerBuilder.error
+    error: state.burgerBuilder.error,
+    isAuthenticated: state.auth.token !== null
   }
 };
 
@@ -91,7 +98,8 @@ const mapDispatchToProps = dispatch => {
     onIngredientAdded: (ingredientName) => dispatch(actions.addIngredient(ingredientName)),
     onIngredientRemoved: (ingredientName) => dispatch(actions.removeIngredient(ingredientName)),
     onInitIngridients: () => dispatch(actions.initIngredients()),
-    onInitPurchase: () => dispatch(actions.purchaseInit())
+    onInitPurchase: () => dispatch(actions.purchaseInit()),
+    onSetAuthRedirectPath: (path) => dispatch(actions.setAuthRedirectPath(path))
   }
 };
 
